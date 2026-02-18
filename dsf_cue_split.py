@@ -28,6 +28,7 @@ def read_dsf_header(filepath):
         magic = f.read(4)
         if magic != b'DSD ':
             raise ValueError(f"{filepath}: not a DSF file (magic={magic!r})")
+        dsd_chunk_size = struct.unpack('<Q', f.read(8))[0]
         total_file_size = struct.unpack('<Q', f.read(8))[0]
         metadata_offset = struct.unpack('<Q', f.read(8))[0]
 
@@ -44,6 +45,9 @@ def read_dsf_header(filepath):
         bits_per_sample = struct.unpack('<I', f.read(4))[0]
         sample_count = struct.unpack('<Q', f.read(8))[0]  # per channel
         block_size = struct.unpack('<I', f.read(4))[0]
+
+        # Skip any remaining bytes in fmt chunk (e.g. reserved field)
+        f.seek(28 + fmt_chunk_size)
 
         # --- data chunk header (12 bytes) ---
         data_magic = f.read(4)
